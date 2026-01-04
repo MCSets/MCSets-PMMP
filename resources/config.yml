@@ -1,0 +1,8 @@
+# Secret token used for authentication. Head to <proccess to get token from store> to find your token!
+token: ""
+
+# Maximum number of workers allowed to run at the same time
+worker-limit: 2 # Default: 2
+
+# Main command name for the plugin
+command-name: "mcsets" # Default: "mcsets"
