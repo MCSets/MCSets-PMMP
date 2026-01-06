@@ -1,0 +1,10 @@
+{
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    
+    "require": {
+        "dktapps/pmforms": "^2.3",
+        "cortexpe/commando": "dev-master",
+        "muqsit/simple-packet-handler": "^0.1.5"
+    }
+}

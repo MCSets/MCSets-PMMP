@@ -1,0 +1,35 @@
+# Config Version. DO NOT MODIFY!!
+config-version: 2
+
+# Your store's api key.
+api-key: ""
+
+api:
+  base-url: "https://mcsets.com/api/v1/setstore"
+  timeout: 30
+  reconnect-delay: 3
+  max-reconnect-attempts: 2
+
+# Keep empty to auto-detect values
+server:
+  ip: ""
+  port: 0
+
+# How often to call pending deliveries.
+polling:
+  interval: 5
+
+heartbeat:
+  interval: 300
+
+delivery:
+  # Delay to wait before executing command after the delivery has been retrieved.
+  command-delay: 0
+
+# Command names.
+commands:
+  setstore: "setstore"
+  verify: "verify"
+
+# Enable this to have detailed logs of what's happening
+debug: false

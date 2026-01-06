@@ -1,0 +1,4 @@
+/vendor
+/out
+composer.lock
+create-phar.php

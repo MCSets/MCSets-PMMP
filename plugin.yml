@@ -1,0 +1,14 @@
+name: MCSets-PMMP
+main: MCSets\Loader
+api: 5.0.0
+version: 0.0.1
+
+website: https://mcsets.com
+author: MCSets - Remminiscent
+description: A Plugin made for MCSets Set-Store owners to ensure linking compatibilities
+
+permissions:
+  mcsets.admin:
+    default: op
+  mcsets.verify:
+    default: true
