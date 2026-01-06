@@ -26,16 +26,17 @@ class StatusSubCommand extends BaseSubCommand
         $sender->sendMessage(TextFormat::YELLOW . "Connected: " . ($api->isConnected() ? TextFormat::GREEN . "Yes" : TextFormat::RED . "No"));
 
         if ($api->isConnected()) {
+            $sender->sendMessage(TextFormat::YELLOW . "Server Name: " . TextFormat::WHITE . $api->getServerName());
             $sender->sendMessage(TextFormat::YELLOW . "Server ID: " . TextFormat::WHITE . $api->getServerId());
             $sender->sendMessage(TextFormat::YELLOW . "Active Verifications: " . TextFormat::WHITE . $api->getActiveVerificationsCount());
-            $sender->sendMessage(TextFormat::GRAY . "Fetching API queue...");
+            $sender->sendMessage(TextFormat::GRAY . "Fetching Deliveries...");
 
             $api->getThread()->submitRequest("/queue", "GET", [], function (array $response) use ($sender): void {
                 if ($sender instanceof Player && !$sender->isConnected()) return;
 
                 if ($response["success"] && isset($response["data"]["deliveries"])) {
                     $count = count($response["data"]["deliveries"]);
-                    $sender->sendMessage(TextFormat::YELLOW . "API Pending Deliveries: " . TextFormat::WHITE . $count);
+                    $sender->sendMessage(TextFormat::YELLOW . "Pending Deliveries: " . TextFormat::WHITE . $count);
                 } else {
                     $sender->sendMessage(TextFormat::RED . "Failed to fetch API queue");
                 }

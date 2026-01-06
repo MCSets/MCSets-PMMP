@@ -9,7 +9,7 @@ use pocketmine\utils\Config;
 
 final class ConfigManager
 {
-    private const CURRENT_VERSION = 1;
+    private const CURRENT_VERSION = 2;
 
     private Config $config;
     private Loader $plugin;
@@ -32,7 +32,7 @@ final class ConfigManager
         }
 
         $this->config = new Config($configPath, Config::YAML);
-        $currentVersion = (int) $this->config->get("config-version", 0);
+        $currentVersion = (int) $this->config->get("config-version", 1);
 
         if ($currentVersion < self::CURRENT_VERSION) {
             $this->plugin->getLogger()->warning("Config file is outdated (v{$currentVersion}). Migrating to v" . self::CURRENT_VERSION . "...");
@@ -53,12 +53,12 @@ final class ConfigManager
         $this->plugin->saveResource("config.yml", true);
         $this->config->reload();
 
-        if ($fromVersion === 0) {
-            $this->migrateFromV0($oldData);
+        if ($fromVersion === 1) {
+            $this->migrateFromV1($oldData);
         }
     }
 
-    private function migrateFromV0(array $oldData): void
+    private function migrateFromV1(array $oldData): void
     {
         if (isset($oldData["api-key"])) {
             $this->config->set("api-key", $oldData["api-key"]);
@@ -108,6 +108,10 @@ final class ConfigManager
         }
         if (isset($oldData["commands"]["verify"])) {
             $this->config->setNested("commands.verify", $oldData["commands"]["verify"]);
+        }
+
+        if (isset($oldData["debug"])) {
+            $this->config->set("debug", $oldData["debug"]);
         }
 
         $this->config->save();
@@ -181,5 +185,10 @@ final class ConfigManager
     public function getVerifyCommandName(): string
     {
         return (string) $this->config->getNested("commands.verify", "verify");
+    }
+
+    public function isDebugEnabled(): bool
+    {
+        return (bool) $this->config->get("debug", false);
     }
 }

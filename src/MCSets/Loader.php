@@ -68,6 +68,12 @@ class Loader extends PluginBase
         return $this->configManager;
     }
 
+    public function reloadConfig(): void
+    {
+        parent::reloadConfig();
+        $this->configManager = new ConfigManager($this);
+    }
+
     public function getAPI(): ?MCSetsAPI
     {
         return $this->api;
@@ -89,7 +95,7 @@ class Loader extends PluginBase
 
         $this->getScheduler()->scheduleRepeatingTask(new OnlinePlayersTask(), 100);
 
-        $this->getLogger()->info(TextFormat::YELLOW . "Connecting to MCSets...");
+        $this->getLogger()->notice(TextFormat::YELLOW . "Connecting to MCSets...");
         $this->api->connect();
     }
 

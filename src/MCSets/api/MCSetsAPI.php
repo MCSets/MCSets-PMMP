@@ -7,6 +7,7 @@ namespace MCSets\api;
 use MCSets\Loader;
 use MCSets\thread\MCSetsThread;
 use MCSets\thread\ThreadCallableCache;
+use MCSets\utils\ConfigManager;
 use pocketmine\console\ConsoleCommandSender;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
@@ -20,7 +21,9 @@ class MCSetsAPI
 
     private MCSetsThread $thread;
     private Loader $plugin;
+    private ConfigManager $config;
     private bool $connected = false;
+    private string $serverName = "Unknown";
     private int $serverId = 0;
     private int $reconnectAttempts = 0;
     private array $activeVerifications = [];
@@ -28,12 +31,12 @@ class MCSetsAPI
     public function __construct(Loader $plugin, string $apiKey)
     {
         $this->plugin = $plugin;
-        $config = $plugin->getConfigManager();
+        $this->config = $plugin->getConfigManager();
         $this->thread = new MCSetsThread(
             $apiKey,
-            $config->getBaseUrl(),
-            $config->getApiTimeout(),
-            $config->getPollingInterval()
+            $this->config->getBaseUrl(),
+            $this->config->getApiTimeout(),
+            $this->config->getPollingInterval()
         );
         $this->setupQueuePollCallback();
     }
@@ -56,7 +59,9 @@ class MCSetsAPI
             }
 
             foreach ($deliveries as $delivery) {
-                $this->plugin->getLogger()->info(TextFormat::YELLOW . "New purchase: {$delivery["package_name"]} for {$delivery["player_username"]}");
+                if ($this->config->isDebugEnabled()) {
+                    $this->plugin->getLogger()->info(TextFormat::YELLOW . "New purchase: {$delivery["package_name"]} for {$delivery["player_username"]}");
+                }
                 $this->processDelivery($delivery);
             }
         };
@@ -83,16 +88,23 @@ class MCSetsAPI
             if ($response["success"] && isset($response["data"]["success"]) && $response["data"]["success"]) {
                 $this->connected = true;
                 $this->reconnectAttempts = 0;
+                $this->serverName = $response["data"]["server"]["name"] ?? "Unknown";
                 $this->serverId = $response["data"]["server"]["id"] ?? 0;
                 $pendingCount = $response["data"]["pending_deliveries"] ?? 0;
-                $this->plugin->getLogger()->info(TextFormat::GREEN . "Successfully connected to MCSets! Server ID: " . $this->serverId);
-                if ($pendingCount > 0) {
+                $message = TextFormat::GREEN . "Successfully connected to " . TextFormat::YELLOW . $this->serverName . TextFormat::GREEN . "!";
+                if ($this->config->isDebugEnabled()) {
+                    TextFormat::GREEN . "Successfully connected to " . TextFormat::YELLOW . $this->serverName . TextFormat::GREEN . "! Server ID: "  . TextFormat::YELLOW . $this->serverId;
+                }
+                $this->plugin->getLogger()->info($message);
+                if ($pendingCount > 0 && $this->config->isDebugEnabled()) {
                     $this->plugin->getLogger()->info(TextFormat::YELLOW . "Found {$pendingCount} pending deliveries");
                 }
             } else {
                 $error = $response["error"] ?? "Unknown error";
                 $httpCode = $response["http_code"] ?? 0;
-                $this->plugin->getLogger()->warning("Failed to connect to MCSets (HTTP {$httpCode}): " . $error);
+                if ($this->config->isDebugEnabled() || $this->reconnectAttempts === 0) {
+                    $this->plugin->getLogger()->warning("Failed to connect to MCSets (HTTP {$httpCode}): " . $error);
+                }
                 $this->scheduleReconnect();
             }
         });
@@ -110,7 +122,7 @@ class MCSetsAPI
             $data["error_message"] = $errorMessage;
         }
         $this->thread->submitRequest("/deliver", "POST", $data, function (array $response): void {
-            if (!$response["success"]) {
+            if (!$response["success"] && $this->config->isDebugEnabled()) {
                 $this->plugin->getLogger()->warning("Failed to report delivery: " . ($response["error"] ?? "Unknown error"));
             }
         });
@@ -268,12 +280,19 @@ class MCSetsAPI
         }
 
         $this->reportDelivery($delivery["id"], $status, $actionsExecuted, $errorMessage, $duration);
-        $this->plugin->getLogger()->info(TextFormat::GREEN . "Delivered '{$delivery["package_name"]}' to {$username}");
+        if ($this->config->isDebugEnabled()) {
+            $this->plugin->getLogger()->info(TextFormat::GREEN . "Delivered '{$delivery["package_name"]}' to {$username}");
+        }
     }
 
     public function isConnected(): bool
     {
         return $this->connected;
+    }
+
+    public function getServerName(): string
+    {
+        return $this->serverName;
     }
 
     public function getServerId(): int
@@ -293,15 +312,22 @@ class MCSetsAPI
 
     private function scheduleReconnect(): void
     {
+        if ($this->reconnectAttempts === 0) {
+            $this->plugin->getLogger()->notice("Attempting to reconnect...");
+        }
         $this->reconnectAttempts++;
         $maxAttempts = $this->plugin->getConfigManager()->getApiMaxReconnectAttempts();
         if ($this->reconnectAttempts > $maxAttempts) {
+            //if ($this->config->isDebugEnabled()) {
             $this->plugin->getLogger()->error(TextFormat::RED . "Failed to connect to MCSets after {$maxAttempts} attempts. Please check your API key");
+            //}
             return;
         }
         $delay = $this->plugin->getConfigManager()->getApiReconnectDelay();
         $this->plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function () use ($maxAttempts): void {
-            $this->plugin->getLogger()->info("Retrying connection to MCSets (Attempt {$this->reconnectAttempts}/{$maxAttempts})...");
+            if ($this->config->isDebugEnabled()) {
+                $this->plugin->getLogger()->info("Retrying connection to MCSets (Attempt {$this->reconnectAttempts}/{$maxAttempts})...");
+            }
             $this->connect();
         }), $delay * 20);
     }

@@ -6,7 +6,6 @@ namespace MCSets\thread;
 
 use pocketmine\thread\Thread;
 use pmmp\thread\ThreadSafeArray;
-use MCSets\thread\curl\Curl;
 
 class MCSetsThread extends Thread
 {

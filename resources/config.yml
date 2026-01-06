@@ -1,5 +1,5 @@
 # Config Version. DO NOT MODIFY!!
-config-version: 1
+config-version: 2
 
 # Your store's api key.
 api-key: ""
@@ -30,3 +30,6 @@ delivery:
 commands:
   setstore: "setstore"
   verify: "verify"
+
+# Enable this to have detailed logs of what's happening
+debug: false
