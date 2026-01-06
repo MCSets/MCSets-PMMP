@@ -20,7 +20,7 @@
 
 declare(strict_types=1);
 
-const OUTPUT_FILE = "out\MCSets-PMMP.phar";
+const OUTPUT_FILE = "out\\MCSets-PMMP.phar";
 const WORKSPACE_DIRECTORY = "out";
 
 const COMPOSER_DIR = "vendor";
@@ -29,12 +29,12 @@ const RESOURCES_FILE = "resources";
 const INCLUDED_VIRIONS = [
     "dktapps/pmforms" => "dktapps\\pmforms",
     "cortexpe/commando" => "CortexPE\\Commando",
-    "muqsit/simplepackethandler" => "muqsit\\simplepackethandler"
+    "muqsit/simple-packet-handler" => "muqsit\\simplepackethandler"
 ];
 
 const PLUGIN_DESCRIPTION_FILE = "plugin.yml";
 
-chdir("..");
+//chdir("..");
 if (file_exists("out")) {
     out("Cleaning workspace...");
     cleanDirectory(WORKSPACE_DIRECTORY);
