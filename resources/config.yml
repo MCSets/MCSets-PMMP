@@ -1,8 +1,32 @@
-# Secret token used for authentication. Head to <proccess to get token from store> to find your token!
-token: ""
+# Config Version. DO NOT MODIFY!!
+config-version: 1
 
-# Maximum number of workers allowed to run at the same time
-worker-limit: 2 # Default: 2
+# Your store's api key.
+api-key: ""
 
-# Main command name for the plugin
-command-name: "mcsets" # Default: "mcsets"
+api:
+  base-url: "https://mcsets.com/api/v1/setstore"
+  timeout: 30
+  reconnect-delay: 3
+  max-reconnect-attempts: 2
+
+# Keep empty to auto-detect values
+server:
+  ip: ""
+  port: 0
+
+# How often to call pending deliveries.
+polling:
+  interval: 5
+
+heartbeat:
+  interval: 300
+
+delivery:
+  # Delay to wait before executing command after the delivery has been retrieved.
+  command-delay: 0
+
+# Command names.
+commands:
+  setstore: "setstore"
+  verify: "verify"

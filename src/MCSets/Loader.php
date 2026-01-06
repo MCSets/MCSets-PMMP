@@ -5,16 +5,24 @@ declare(strict_types=1);
 namespace MCSets;
 
 use CortexPE\Commando\PacketHooker;
-use MCSets\command\MCSetsCommand;
-use mcsets\utils\ConfigManager;
+use MCSets\api\MCSetsAPI;
+use MCSets\command\SetStoreCommand;
+use MCSets\command\VerifyCommand;
+use MCSets\thread\MCSetsThread;
+use MCSets\thread\task\HeartbeatTask;
+use MCSets\thread\task\OnlinePlayersTask;
+use MCSets\thread\task\ReadResponsesTask;
+use MCSets\utils\ConfigManager;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
+use pocketmine\utils\TextFormat;
 
 class Loader extends PluginBase
 {
     use SingletonTrait;
 
     private ConfigManager $configManager;
+    private ?MCSetsAPI $api = null;
 
     function onLoad(): void
     {
@@ -27,17 +35,32 @@ class Loader extends PluginBase
 
         $this->configManager = new ConfigManager($this);
 
-        $token = $this->configManager->getToken();
+        $setStoreCommandName = $this->configManager->getSetStoreCommandName();
+        $apiKey = $this->configManager->getApiKey();
 
-        if ($token === "") {
-            $this->getLogger()->notice("Please configure your Sets-Store private token using //TODO");
+        if ($apiKey === "") {
+            $this->getLogger()->notice("Please configure your API key using /{$setStoreCommandName} apikey <api-key>");
         } else {
-            $this->setToken($token);
+            $this->initializeAPI($apiKey);
         }
 
-        $command = new MCSetsCommand($this, $this->configManager->getCommandName(), "Manage your MCSets Store");
-        $command->setPermission($command->getPermission()); //idk why commando doesnt auto do this
-        $this->getServer()->getCommandMap()->register("MCSets", $command);
+        $setStoreCommand = new SetStoreCommand($this, $setStoreCommandName, "Manage your MCSets Store");
+        $verifyCommand = new VerifyCommand($this, $this->configManager->getVerifyCommandName(), "Verify your minecraft account with the store");
+
+        $setStoreCommand->setPermission($setStoreCommand->getPermission());
+        $verifyCommand->setPermission($verifyCommand->getPermission());
+
+        $this->getServer()->getCommandMap()->register("setstore", $setStoreCommand);
+        $this->getServer()->getCommandMap()->register("verify", $verifyCommand);
+
+        $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
+    }
+
+    public function onDisable(): void
+    {
+        if ($this->api !== null) {
+            $this->api->shutdown();
+        }
     }
 
     public function getConfigManager(): ConfigManager
@@ -45,9 +68,47 @@ class Loader extends PluginBase
         return $this->configManager;
     }
 
-    public function setToken(string $token): void
+    public function getAPI(): ?MCSetsAPI
     {
-        //TODO: call api to verify token, and connect store. and save to config
-        $this->configManager->setToken($token);
+        return $this->api;
+    }
+
+    public function initializeAPI(string $apiKey): void
+    {
+        if ($this->api !== null) {
+            $this->api->shutdown();
+        }
+
+        $this->api = new MCSetsAPI($this, $apiKey);
+        $this->api->startThread();
+
+        $this->getScheduler()->scheduleRepeatingTask(new ReadResponsesTask($this->api->getThread()), 1);
+
+        $heartbeatInterval = $this->configManager->getHeartbeatInterval();
+        $this->getScheduler()->scheduleRepeatingTask(new HeartbeatTask(), $heartbeatInterval * 20);
+
+        $this->getScheduler()->scheduleRepeatingTask(new OnlinePlayersTask(), 100);
+
+        $this->getLogger()->info(TextFormat::YELLOW . "Connecting to MCSets...");
+        $this->api->connect();
+    }
+
+    public function createNewThread(): MCSetsThread
+    {
+        $thread = $this->api?->getThread();
+
+        if ($thread !== null && $thread->isRunning()) {
+            return $thread;
+        }
+
+        $newThread = new MCSetsThread(
+            $this->configManager->getApiKey(),
+            $this->configManager->getBaseUrl(),
+            $this->configManager->getApiTimeout(),
+            $this->configManager->getPollingInterval()
+        );
+        $newThread->start();
+
+        return $newThread;
     }
 }
