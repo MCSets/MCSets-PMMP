@@ -111,7 +111,7 @@ The plugin communicates with the following SetStore API endpoints:
 
 ## Support
 
-- **Documentation**: [https://docs.mcsets.com/](https://docs.mcsets.com/)
+- **Documentation**: [MCSets Docs](https://docs.mcsets.com/)
 - **Issues**: [GitHub Issues](https://github.com/mcsets/MCSets-PMMP/issues)
 - **Discord**: [MCSets Discord](https://discord.gg/mcsets)
 
