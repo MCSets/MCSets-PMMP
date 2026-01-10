@@ -134,7 +134,7 @@ final class ConfigManager
 
     public function getBaseUrl(): string
     {
-        return (string) $this->config->getNested("api.base-url", "https://mcsets.com/api/v1/setstore");
+        return (string) $this->config->getNested("api.base-url", "https://app.mcsets.com/api/v1/setstore");
     }
 
     public function getApiTimeout(): int
