@@ -31,7 +31,7 @@ After first run, edit `plugin_data/MCSets-PMMP/config.yml`:
 api-key: ""
 
 api:
-  base-url: "https://mcsets.com/api/v1/setstore"
+  base-url: "https://app.mcsets.com/api/v1/setstore"
   timeout: 30
   reconnect-delay: 3
   max-reconnect-attempts: 2
