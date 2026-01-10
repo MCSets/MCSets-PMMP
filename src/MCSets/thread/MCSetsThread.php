@@ -18,8 +18,9 @@ class MCSetsThread extends Thread
     private int $timeout;
     private int $pollingInterval;
     private float $lastPollTime = 0.0;
+    private bool $verifySsl;
 
-    public function __construct(string $apiKey, string $baseUrl, int $timeout, int $pollingInterval)
+    public function __construct(string $apiKey, string $baseUrl, int $timeout, int $pollingInterval, bool $verifySsl)
     {
         $this->requests = new ThreadSafeArray();
         $this->responses = new ThreadSafeArray();
@@ -27,6 +28,7 @@ class MCSetsThread extends Thread
         $this->baseUrl = $baseUrl;
         $this->timeout = $timeout;
         $this->pollingInterval = $pollingInterval;
+        $this->verifySsl = $verifySsl;
     }
 
     public function onRun(): void
@@ -56,8 +58,8 @@ class MCSetsThread extends Thread
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->verifySsl);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $this->verifySsl ? 2 : 0);
         curl_setopt($ch, CURLOPT_USERAGENT, "MCSets-PMMP/0.0.1");
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Content-Type: application/json",

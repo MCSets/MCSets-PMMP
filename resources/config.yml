@@ -9,6 +9,7 @@ api:
   timeout: 30
   reconnect-delay: 3
   max-reconnect-attempts: 2
+  verify-ssl: true
 
 # Keep empty to auto-detect values
 server:

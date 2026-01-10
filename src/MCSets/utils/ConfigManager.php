@@ -142,6 +142,11 @@ final class ConfigManager
         return (int) $this->config->getNested("api.timeout", 30);
     }
 
+    public function getVerifySsl(): bool
+    {
+        return (bool) $this->config->getNested("api.verify-ssl", true);
+    }
+
     public function getApiReconnectDelay(): int
     {
         return (int) $this->config->getNested("api.reconnect-delay", 3);

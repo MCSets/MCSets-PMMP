@@ -36,7 +36,8 @@ class MCSetsAPI
             $apiKey,
             $this->config->getBaseUrl(),
             $this->config->getApiTimeout(),
-            $this->config->getPollingInterval()
+            $this->config->getPollingInterval(),
+            $this->config->getVerifySsl()
         );
         $this->setupQueuePollCallback();
     }

@@ -111,7 +111,8 @@ class Loader extends PluginBase
             $this->configManager->getApiKey(),
             $this->configManager->getBaseUrl(),
             $this->configManager->getApiTimeout(),
-            $this->configManager->getPollingInterval()
+            $this->configManager->getPollingInterval(),
+            $this->configManager->getVerifySsl()
         );
         $newThread->start();
 
