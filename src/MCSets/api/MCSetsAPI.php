@@ -27,6 +27,7 @@ class MCSetsAPI
     private int $serverId = 0;
     private int $reconnectAttempts = 0;
     private array $activeVerifications = [];
+    private array $processingDeliveryIds = [];
 
     public function __construct(Loader $plugin, string $apiKey)
     {
@@ -59,6 +60,12 @@ class MCSetsAPI
             }
 
             foreach ($deliveries as $delivery) {
+                $id = $delivery["id"];
+                if(in_array($id, $this->processingDeliveryIds)) {
+                    continue;
+                }
+                $this->processingDeliveryIds[] = $id;
+
                 if ($this->config->isDebugEnabled()) {
                     $this->plugin->getLogger()->info(TextFormat::YELLOW . "New purchase: {$delivery["package_name"]} for {$delivery["player_username"]}");
                 }
@@ -279,7 +286,13 @@ class MCSetsAPI
             $errorMessage = "Failed commands: " . implode(", ", $failedActions);
         }
 
-        $this->reportDelivery($delivery["id"], $status, $actionsExecuted, $errorMessage, $duration);
+        $id = $delivery["id"];
+
+        $this->reportDelivery($id, $status, $actionsExecuted, $errorMessage, $duration);
+        if (($key = array_search($id, $this->processingDeliveryIds)) !== false) {
+            unset($this->processingDeliveryIds[$key]);
+        }
+
         if ($this->config->isDebugEnabled()) {
             $this->plugin->getLogger()->info(TextFormat::GREEN . "Delivered '{$delivery["package_name"]}' to {$username}");
         }

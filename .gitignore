@@ -2,3 +2,4 @@
 /out
 composer.lock
 create-phar.php
+.idea
