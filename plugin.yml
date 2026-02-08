@@ -1,7 +1,7 @@
 name: MCSets-PMMP
 main: MCSets\Loader
 api: 5.0.0
-version: 1.0.3
+version: 1.0.4
 
 website: https://mcsets.com
 author: MCSets - Remminiscent
